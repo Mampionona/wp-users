@@ -1,0 +1,52 @@
+/**
+ * All of the CSS for your public-facing functionality should be
+ * included in this file.
+ */
+
+.login,
+.register {
+    margin-bottom: 70px;
+}
+
+.login {
+    max-width: 400px;
+    margin: 70px auto 70px;
+}
+
+.login h1,
+.register h1 {
+    line-height: initial;
+    margin-bottom: 30px;
+}
+
+.register .form-control,
+.login .form-control {
+    border: 1px solid #d0d0d0;
+    border-radius: 0;
+    height: 40px;
+    padding: 9px 15px;
+}
+
+.register {
+    margin-top: 50px;
+}
+
+#login-message {
+    display: none;
+    font-weight: 600;
+    margin: 24px 0;
+}
+
+.submit-btn {
+    background: #3875ba;
+    border-radius: 3px;
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 12px 15px;
+}
+
+.register-page {
+    margin-top: 70px;
+}
