@@ -151,6 +151,13 @@ class Xbot17_Users_Public {
 		$mdp = self::getValue('mdp');
 		$confirmation_mdp = self::getValue('confirmation_mdp');
 
+		if (mb_strlen($mdp) < 8) {
+			wp_send_json_error(array(
+				'registered' => false,
+				'message' => __('Mot de passe trop court.', 'xbot17-users')
+			));
+		}
+
 		if ($mdp !== $confirmation_mdp) {
 			wp_send_json_error(array(
 				'registered' => false,
