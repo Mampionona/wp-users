@@ -54,3 +54,24 @@
 .account-activated p {
     margin-bottom: 0;
 }
+
+.tableau-bord {
+    margin: 50px 0;
+}
+
+.page .page-content {
+    margin: 50px 0;
+}
+
+.tableau-bord h1,
+.page .page-content h1 {
+    margin-bottom: 30px;
+}
+
+.page .main-content {
+    min-height: 222px;
+}
+
+.navbar-default .navbar-nav .current-menu-item a {
+    color: #00aeef;
+}

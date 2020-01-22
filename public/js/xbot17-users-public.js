@@ -40,9 +40,10 @@
 			result.removeClass('text-danger').html(message).addClass('text-success').fadeIn();
 		}
 
-		function hideError() {
+		function hideError(callback) {
 			result.fadeOut(200, function () {
 				result.empty().removeClass('text-danger');
+				callback && callback();
 			});
 		}
 
@@ -60,18 +61,20 @@
 			// async action
 			$.post(xbot17_users.ajaxurl, data, function (response) {
 				if (response && response.success) {
-					hideError();
-					if (data.action) {
-						switch (data.action) {
-							case 'login_action':
-								window.location.reload();
-								break;
+					// console.log(response);
+					hideError(function () {
+						if (data.action) {
+							switch (data.action) {
+								case 'login_action':
+									window.location.href = xbot17_users.redirect_uri;
+									break;
 
-							case 'register_action':
-								displaySuccessMessage(response.data.message);
-								form.trigger('reset');
+								case 'register_action':
+									displaySuccessMessage(response.data.message);
+									form.trigger('reset');
+							}
 						}
-					}
+					});
 				}
 				else if (response && !response.success) displayErrorMessage(response.data.message);
 			})

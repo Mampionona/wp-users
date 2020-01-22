@@ -20,6 +20,7 @@
  * @subpackage Xbot17_Users/public
  * @author     Mampionona <mmampionona@gmail.com>
  */
+
 class Xbot17_Users_Public {
 
 	/**
@@ -63,6 +64,23 @@ class Xbot17_Users_Public {
 
 		// activate user
 		add_action('template_redirect', array($this, 'activateUser'));
+
+		add_action('wp', array($this, 'hideAdminbar'));
+
+		add_filter('translated_post_link', array(__CLASS__, 'translatedPostLink'), 10, 1);
+	}
+
+	public function hideAdminbar()
+	{
+		// esorina ny admin-bar rehefa investisseur
+		$user_id = get_current_user_id();
+
+		if ($user_id === 0) return;
+
+		$userdata = get_userdata($user_id);
+		if (in_array('subscriber', $userdata->roles)) {
+			add_filter('show_admin_bar', '__return_false');
+		}
 	}
 
 	/**
@@ -108,8 +126,10 @@ class Xbot17_Users_Public {
 
 		wp_enqueue_script($this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/xbot17-users-public.js', array( 'jquery' ), $this->version, false );
 
+		$mon_compte = 13;
 		wp_localize_script( $this->plugin_name, 'xbot17_users', array(
-			'ajaxurl' => admin_url( 'admin-ajax.php' )
+			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'redirect_uri' => apply_filters('translated_post_link', $mon_compte)
 		));
 	}
 
@@ -155,22 +175,33 @@ class Xbot17_Users_Public {
 
 			$code = sha1( $user_id . time() );
 			$mon_compte = 13;
-			$link = get_the_permalink(self::getTranslatedPostID($mon_compte));
+			$link = apply_filters('translated_post_link', $mon_compte);
 			$activation_link = add_query_arg( array(
 				'activate_account' => true,
 				'key' => $code,
 				'user' => $user_id
 			), $link);
-			add_user_meta($user_id, 'has_to_be_activated', $code, true);
-			if (wp_mail($email, 'ACTIVATION SUBJECT', 'CONGRATS BLA BLA BLA. HERE IS YOUR ACTIVATION LINK: ' . $activation_link)) {
+			$subject = __('Activer votre compte Xbot17', 'xbot17-users');
+			$message = sprintf(
+				__('Bonjour %s,<br>Veuillez cliquer sur le lien suivant pour activer votre compte Xbot17 : %s.<br>Cordialement', 'xbot17-users'),
+				$prenom,
+				$activation_link
+			);
+
+			if (self::sendNotification($email, $subject, $message)) {
+				add_user_meta($user_id, 'has_to_be_activated', $code, true);
 				wp_send_json_success(array(
 					'registered' => true,
 					'message' => __('Vos informations ont été enregistrées. Vous recevrez un email pour l\'activation de votre compte.', 'xbot17-users')
 				));
 			}
+
+			// Fafana izy raha tsy lasa ny mail
+			wp_delete_user($user_id);
+
 			wp_send_json_error(array(
 				'registered' => false,
-				'message' => __('Un problème s\'est survenu lors de l\'envoi de l\'email d\'activation de votre compte.', 'xbot17-users')
+				'message' => __('Une erreur s\'est produite lors de la creation de votre compte. Veuillez réessayer.', 'xbot17-users')
 			));
 		}
 
@@ -178,6 +209,12 @@ class Xbot17_Users_Public {
 			'registered' => false,
 			'message' => $user_id->get_error_message()
 		));
+	}
+
+	public static function sendNotification($to, $subject, $message, $headers = array())
+	{
+		$headers[] = 'Content-Type: text/html; charset=UTF-8';
+		return wp_mail($to, $subject, $message, $headers);
 	}
 
 	public static function myAccount()
@@ -283,5 +320,10 @@ class Xbot17_Users_Public {
 			return icl_object_id($post_id, 'page', false, ICL_LANGUAGE_CODE);
 		}
 		return $post_id;
+	}
+
+	public static function translatedPostLink($post_id)
+	{
+		return get_the_permalink(self::getTranslatedPostID($post_id));
 	}
 }
