@@ -78,10 +78,7 @@
 				}
 				else if (response && !response.success) displayErrorMessage(response.data.message);
 			})
-			.done(function () {
-				submit_btn.removeAttr('disabled');
-			})
-			.fail(function () {
+			.always(function () {
 				submit_btn.removeAttr('disabled');
 			});
 		});
