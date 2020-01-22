@@ -77,6 +77,9 @@
 			})
 			.done(function () {
 				submit_btn.removeAttr('disabled');
+			})
+			.fail(function () {
+				submit_btn.removeAttr('disabled');
 			});
 		});
 	});

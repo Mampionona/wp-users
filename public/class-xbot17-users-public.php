@@ -139,7 +139,7 @@ class Xbot17_Users_Public {
 		}
 
 		$default_newuser = array(
-			'user_pass' =>  wp_hash_password(sanitize_text_field($mdp)),
+			'user_pass' =>  sanitize_text_field($mdp),
 			'user_login' => $email,
 			'user_email' => $email,
 			'first_name' => $prenom,
@@ -154,13 +154,23 @@ class Xbot17_Users_Public {
 			update_user_meta($user_id, 'user_annee_naissance', $annee_naissance);
 
 			$code = sha1( $user_id . time() );
-			$activation_link = add_query_arg( array( 'key' => $code, 'user' => $user_id ), get_permalink(13));
-			add_user_meta( $user_id, 'has_to_be_activated', $code, true );
-			wp_mail( $email, 'ACTIVATION SUBJECT', 'CONGRATS BLA BLA BLA. HERE IS YOUR ACTIVATION LINK: ' . $activation_link );
-
-			wp_send_json_success(array(
-				'registered' => true,
-				'message' => __('Vos informations ont été enregistrées. Vous recevrez un email pour l\'activation de votre compte.', 'xbot17-users')
+			$mon_compte = 13;
+			$link = get_the_permalink(self::getTranslatedPostID($mon_compte));
+			$activation_link = add_query_arg( array(
+				'activate_account' => true,
+				'key' => $code,
+				'user' => $user_id
+			), $link);
+			add_user_meta($user_id, 'has_to_be_activated', $code, true);
+			if (wp_mail($email, 'ACTIVATION SUBJECT', 'CONGRATS BLA BLA BLA. HERE IS YOUR ACTIVATION LINK: ' . $activation_link)) {
+				wp_send_json_success(array(
+					'registered' => true,
+					'message' => __('Vos informations ont été enregistrées. Vous recevrez un email pour l\'activation de votre compte.', 'xbot17-users')
+				));
+			}
+			wp_send_json_error(array(
+				'registered' => false,
+				'message' => __('Un problème s\'est survenu lors de l\'envoi de l\'email d\'activation de votre compte.', 'xbot17-users')
 			));
 		}
 
@@ -198,6 +208,8 @@ class Xbot17_Users_Public {
 		$info['user_password'] = sanitize_text_field(self::getValue('mdp'));
 		$info['remember'] = true;
 
+		$this->checkIfUserIsActivated($info['user_login'], $info['user_password']);
+
 		$user_signon = wp_signon( $info, false );
 
 		if (is_wp_error($user_signon)) {
@@ -227,28 +239,18 @@ class Xbot17_Users_Public {
 	/**
 	 * Check user activation on login
 	 */
-	public function checkUserActivation($username, $password)
+	public function checkIfUserIsActivated($username, $password)
 	{
 		$username = sanitize_user($username);
 		$password = trim($password);
 
 		$user = apply_filters('authenticate', null, $username, $password);
 
-		if ( $user === null ) {
-			// TODO what should the error message be? (Or would these even happen?)
-			// Only needed if all authentication handlers fail to return anything.
-			$user = new WP_Error('authentication_failed', __('<strong>ERROR</strong>: Invalid username or incorrect password.'));
-		} elseif ( get_user_meta( $user->ID, 'has_to_be_activated', true ) != false ) {
-			$user = new WP_Error('activation_failed', __('<strong>ERROR</strong>: User is not activated.'));
+		if ($user && get_user_meta( $user->ID, 'has_to_be_activated', true )) {
+			wp_send_json_error(array(
+				'message' => __('Vous n\'avez pas encore activé votre compte.', 'xbot17-users')
+			));
 		}
-
-		$ignore_codes = array('empty_username', 'empty_password');
-
-		if (is_wp_error($user) && !in_array($user->get_error_code(), $ignore_codes) ) {
-			do_action('wp_login_failed', $username);
-		}
-
-		return $user;
 	}
 
 	/**
@@ -256,18 +258,30 @@ class Xbot17_Users_Public {
 	 */
 	public function activateUser()
 	{
-		$page_id = 13; // $_GET['page_id']
-		if ( is_page() && get_the_ID() === $page_id ) {
+		if ((bool) filter_input( INPUT_GET, 'activate_account' )) {
 			$user_id = filter_input(INPUT_GET, 'user', FILTER_VALIDATE_INT, array(
 				'options' => array('min_range' => 1)
 			));
 			if ( $user_id ) {
 				// get user meta activation hash field
 				$code = get_user_meta( $user_id, 'has_to_be_activated', true );
-				if ( $code == filter_input( INPUT_GET, 'key' ) ) {
+				if ( $code === filter_input( INPUT_GET, 'key' ) ) {
 					delete_user_meta( $user_id, 'has_to_be_activated' );
+					$userdata = array(
+						'ID' => $user_id,
+						'role' => 'subscriber'
+					);
+					$user_id = wp_update_user($userdata);
 				}
 			}
 		}
+	}
+
+	public static function getTranslatedPostID($post_id)
+	{
+		if (function_exists('icl_object_id')) {
+			return icl_object_id($post_id, 'page', false, ICL_LANGUAGE_CODE);
+		}
+		return $post_id;
 	}
 }

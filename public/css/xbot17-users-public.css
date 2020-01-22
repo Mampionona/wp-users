@@ -50,3 +50,7 @@
 .register-page {
     margin-top: 70px;
 }
+
+.account-activated p {
+    margin-bottom: 0;
+}
