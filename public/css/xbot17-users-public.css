@@ -36,13 +36,8 @@
     padding: 9px 15px;
 }
 
-/* .register {
-    margin-top: 50px;
-} */
-
 #login-message {
     display: none;
-    /* font-weight: 600; */
     margin: 24px 0;
 }
 
@@ -62,7 +57,7 @@
 }
 
 .register-page {
-    margin-top: 70px;
+    padding-top: 70px;
 }
 
 .account-activated p {
@@ -72,15 +67,6 @@
 .tableau-bord {
     margin: 50px 0;
 }
-
-.page .page-content {
-    margin: 50px 0;
-}
-
-/* .tableau-bord h1,
-.page .page-content h1 {
-    margin-bottom: 30px;
-} */
 
 .page .main-content {
     min-height: 222px;
