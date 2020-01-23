@@ -9,8 +9,10 @@
 }
 
 .login {
-    max-width: 400px;
+    max-width: 430px;
     margin: 70px auto 70px;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
 .tableau-bord h1,

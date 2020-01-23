@@ -68,15 +68,6 @@ class Xbot17_Users_Public {
 		add_action('wp', array($this, 'hideAdminbar'));
 
 		add_filter('translated_post_link', array(__CLASS__, 'translatedPostLink'), 10, 1);
-		add_filter('pays', array(__CLASS__, 'pays'), 10, 1);
-
-		// PROFILE
-		add_action('show_user_profile', array($this, 'editUserProfile'));
-		add_action('personal_options_update', array($this, 'editUserProfileUpdate'));
-
-		// USER EDIT
-		add_action('edit_user_profile', array($this, 'editUserProfile') );
-		add_action('edit_user_profile_update', array($this, 'editUserProfileUpdate'));
 	}
 
 	public function hideAdminbar()
@@ -172,21 +163,18 @@ class Xbot17_Users_Public {
 			|| empty($confirmation_mdp)
 		) {
 			wp_send_json_error(array(
-				'registered' => false,
 				'message' => __('Tous les champs sont obligatoires.', 'xbot17-users')
 			));
 		}
 
 		if (mb_strlen($mdp) < 8) {
 			wp_send_json_error(array(
-				'registered' => false,
 				'message' => __('Mot de passe trop court.', 'xbot17-users')
 			));
 		}
 
 		if ($mdp !== $confirmation_mdp) {
 			wp_send_json_error(array(
-				'registered' => false,
 				'message' => __('Les mots de passe ne correspondent pas.', 'xbot17-users')
 			));
 		}
@@ -224,7 +212,6 @@ class Xbot17_Users_Public {
 			if (self::sendNotification($email, $subject, $message)) {
 				add_user_meta($user_id, 'has_to_be_activated', $code, true);
 				wp_send_json_success(array(
-					'registered' => true,
 					'message' => __('Vos informations ont été enregistrées. Vous recevrez un email pour l\'activation de votre compte.', 'xbot17-users')
 				));
 			}
@@ -233,13 +220,11 @@ class Xbot17_Users_Public {
 			wp_delete_user($user_id);
 
 			wp_send_json_error(array(
-				'registered' => false,
 				'message' => __('Une erreur s\'est produite lors de la creation de votre compte. Veuillez réessayer.', 'xbot17-users')
 			));
 		}
 
 		wp_send_json_error(array(
-			'registered' => false,
 			'message' => $user_id->get_error_message()
 		));
 	}
@@ -272,7 +257,6 @@ class Xbot17_Users_Public {
 	{
 		self::checkNonce();
 
-		// Nonce is checked, get the POST data and sign user on
 		$info = array();
 		$info['user_login'] = sanitize_text_field(self::getValue('email'));
 		$info['user_password'] = sanitize_text_field(self::getValue('mdp'));
@@ -358,58 +342,5 @@ class Xbot17_Users_Public {
 	public static function translatedPostLink($post_id)
 	{
 		return get_the_permalink(self::getTranslatedPostID($post_id));
-	}
-
-	public function editUserProfile( $user )
-	{
-		$user_pays = get_the_author_meta( 'user_pays', $user->ID );
-		?>
-		<table class="form-table" id="custom-user-meta">
-			<tr>
-				<th>
-					<label for="telephone"><?= __( 'Téléphone', 'xbot17-users' ); ?></label>
-				</th>
-				<td>
-					<input type="text" name="user_telephone" id="telephone" value="<?php echo esc_attr( get_the_author_meta( 'user_telephone', $user->ID ) ); ?>" class="regular-text" />
-				</td>
-			</tr>
-			<tr>
-				<th>
-					<label for="pays"><?= __( 'Pays', 'xbot17-users' ); ?></label>
-				</th>
-				<td>
-					<select name="user_pays" id="pays">
-						<?php foreach (apply_filters('pays', array()) as $pays): ?>
-							<?php $attr_selected = ($user_pays === $pays) ? 'selected' : ''; ?>
-							<option value="<?= $pays; ?>" <?= $attr_selected; ?>><?= $pays; ?></option>
-						<?php endforeach; ?>
-					</select>
-				</td>
-			</tr>
-			<tr>
-				<th>
-					<label for="annee-naissance"><?= __( 'Année de naissance', 'xbot17-users' ); ?></label>
-				</th>
-				<td>
-					<input type="text" name="user_annee_naissance" id="annee-naissance" value="<?php echo esc_attr( get_the_author_meta( 'user_annee_naissance', $user->ID ) ); ?>" class="regular-text" />
-				</td>
-			</tr>
-		</table>
-		<?php
-	}
-
-	public function editUserProfileUpdate( $user_id )
-	{
-		$fields = array('user_telephone', 'user_pays', 'user_annee_naissance');
-
-		foreach ($fields as $field) {
-			update_user_meta($user_id, $field, sanitize_text_field(self::getValue($field)));
-		}
-	}
-
-	public static function pays(array $_pays = array())
-	{
-		$pays = require plugin_dir_path(__DIR__) . 'includes/pays.php';
-		return array_merge($pays, $_pays);
 	}
 }
