@@ -17,8 +17,7 @@
                         <div class="col-md-9">
                             <div class="panel">
                                 <div class="panel-body">
-                                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Repellat tempora repudiandae fugiat id atque consequatur eos voluptas nam nobis suscipit praesentium nostrum neque, eligendi pariatur dicta, quos explicabo quia. Odio?</p>
-                                    <p>Nulla venenatis diam ligula. Cras magna eros, vehicula vel nibh at, lobortis varius turpis. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Aliquam quis euismod leo. Mauris ac turpis consectetur, tempor sapien at, consectetur quam. Vestibulum ac nulla vitae dolor volutpat pulvinar. Vestibulum non enim egestas, posuere est nec, fermentum lorem. Vivamus ut tellus quis lacus posuere lobortis vel a lacus. In feugiat, elit vel lacinia fringilla, leo orci varius orci, id condimentum dolor nisl et ante. Fusce quam leo, pellentesque id vulputate ut, sagittis nec enim. Proin malesuada lorem rhoncus, vulputate lorem non, dignissim mauris. Maecenas commodo quam id suscipit sagittis. Sed ac interdum dolor, eget vulputate eros. Praesent ac risus nec orci lacinia aliquam et eu lorem.</p>
+
                                 </div>
                             </div>
                         </div>
@@ -35,14 +34,17 @@
             <?php wp_nonce_field( 'ajax-login-nonce', 'security' ); ?>
 
             <div class="form-group">
-                <input type="email" name="email" class="form-control" placeholder="<?= __('Adresse e-mail', 'xbot17-users'); ?>">
+                <label for=""><?= __('Adresse e-mail', 'xbot17-users'); ?></label>
+                <input type="email" name="email" class="form-control">
             </div>
             <div class="form-group">
-                <input type="password" name="mdp" class="form-control" placeholder="<?= __('Mot de passe', 'xbot17-users'); ?>">
+                <label for=""><?= __('Mot de passe', 'xbot17-users'); ?></label>
+                <input type="password" name="mdp" class="form-control">
             </div>
             <div id="login-message"></div>
             <div class="submit">
-                <input type="submit" class="submit-btn btn-block" value="<?= __('Connexion', 'xbot17-users'); ?>">
+                <input type="submit" class="submit-btn" value="<?= __('Connexion', 'xbot17-users'); ?>">
+                <i class="fa fa-spinner fa-spin"></i>
             </div>
         </form>
     </div>

@@ -68,6 +68,15 @@ class Xbot17_Users_Public {
 		add_action('wp', array($this, 'hideAdminbar'));
 
 		add_filter('translated_post_link', array(__CLASS__, 'translatedPostLink'), 10, 1);
+		add_filter('pays', array(__CLASS__, 'pays'), 10, 1);
+
+		// PROFILE
+		add_action('show_user_profile', array($this, 'editUserProfile'));
+		add_action('personal_options_update', array($this, 'editUserProfileUpdate'));
+
+		// USER EDIT
+		add_action('edit_user_profile', array($this, 'editUserProfile') );
+		add_action('edit_user_profile_update', array($this, 'editUserProfileUpdate'));
 	}
 
 	public function hideAdminbar()
@@ -135,6 +144,7 @@ class Xbot17_Users_Public {
 
 	public static function register($atts)
 	{
+		// $foo = 'hello Andry';
 		return self::loadTemplate('register.php');
 	}
 
@@ -150,6 +160,22 @@ class Xbot17_Users_Public {
 		$annee_naissance = (int) self::getValue('annee_naissance');
 		$mdp = self::getValue('mdp');
 		$confirmation_mdp = self::getValue('confirmation_mdp');
+
+		if (
+			empty($nom)
+			|| empty($prenom)
+			|| empty($email)
+			|| empty($telephone)
+			|| empty($pays)
+			|| empty($annee_naissance)
+			|| empty($mdp)
+			|| empty($confirmation_mdp)
+		) {
+			wp_send_json_error(array(
+				'registered' => false,
+				'message' => __('Tous les champs sont obligatoires.', 'xbot17-users')
+			));
+		}
 
 		if (mb_strlen($mdp) < 8) {
 			wp_send_json_error(array(
@@ -190,9 +216,9 @@ class Xbot17_Users_Public {
 			), $link);
 			$subject = __('Activer votre compte Xbot17', 'xbot17-users');
 			$message = sprintf(
-				__('Bonjour %s,<br>Veuillez cliquer sur le lien suivant pour activer votre compte Xbot17 : %s.<br>Cordialement', 'xbot17-users'),
+				__('Bonjour %s,<br><br>Pour activer votre compte Xbot17, merci de cliquer sur le lien ci-dessous:<br><br>%s<br><br>Bien cordialement', 'xbot17-users'),
 				$prenom,
-				$activation_link
+				'<a href="' . $activation_link . '">' . $activation_link . '</a>'
 			);
 
 			if (self::sendNotification($email, $subject, $message)) {
@@ -277,7 +303,7 @@ class Xbot17_Users_Public {
 	 */
 	public static function checkNonce()
 	{
-		check_ajax_referer( 'ajax-login-nonce', 'security' );
+		// check_ajax_referer( 'ajax-login-nonce', 'security' );
 	}
 
 	/**
@@ -292,7 +318,7 @@ class Xbot17_Users_Public {
 
 		if ($user && get_user_meta( $user->ID, 'has_to_be_activated', true )) {
 			wp_send_json_error(array(
-				'message' => __('Vous n\'avez pas encore activé votre compte.', 'xbot17-users')
+				'message' => __('Votre compte n\'est pas encore activé.', 'xbot17-users')
 			));
 		}
 	}
@@ -332,5 +358,58 @@ class Xbot17_Users_Public {
 	public static function translatedPostLink($post_id)
 	{
 		return get_the_permalink(self::getTranslatedPostID($post_id));
+	}
+
+	public function editUserProfile( $user )
+	{
+		$user_pays = get_the_author_meta( 'user_pays', $user->ID );
+		?>
+		<table class="form-table" id="custom-user-meta">
+			<tr>
+				<th>
+					<label for="telephone"><?= __( 'Téléphone', 'xbot17-users' ); ?></label>
+				</th>
+				<td>
+					<input type="text" name="user_telephone" id="telephone" value="<?php echo esc_attr( get_the_author_meta( 'user_telephone', $user->ID ) ); ?>" class="regular-text" />
+				</td>
+			</tr>
+			<tr>
+				<th>
+					<label for="pays"><?= __( 'Pays', 'xbot17-users' ); ?></label>
+				</th>
+				<td>
+					<select name="user_pays" id="pays">
+						<?php foreach (apply_filters('pays', array()) as $pays): ?>
+							<?php $attr_selected = ($user_pays === $pays) ? 'selected' : ''; ?>
+							<option value="<?= $pays; ?>" <?= $attr_selected; ?>><?= $pays; ?></option>
+						<?php endforeach; ?>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<th>
+					<label for="annee-naissance"><?= __( 'Année de naissance', 'xbot17-users' ); ?></label>
+				</th>
+				<td>
+					<input type="text" name="user_annee_naissance" id="annee-naissance" value="<?php echo esc_attr( get_the_author_meta( 'user_annee_naissance', $user->ID ) ); ?>" class="regular-text" />
+				</td>
+			</tr>
+		</table>
+		<?php
+	}
+
+	public function editUserProfileUpdate( $user_id )
+	{
+		$fields = array('user_telephone', 'user_pays', 'user_annee_naissance');
+
+		foreach ($fields as $field) {
+			update_user_meta($user_id, $field, sanitize_text_field(self::getValue($field)));
+		}
+	}
+
+	public static function pays(array $_pays = array())
+	{
+		$pays = require plugin_dir_path(__DIR__) . 'includes/pays.php';
+		return array_merge($pays, $_pays);
 	}
 }

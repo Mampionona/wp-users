@@ -13,10 +13,19 @@
     margin: 70px auto 70px;
 }
 
+.tableau-bord h1,
+.page-content h1,
 .login h1,
-.register h1 {
+.register-page h1 {
+    color: #2075cc;
+    font-size: 22px;
     line-height: initial;
-    margin-bottom: 30px;
+    margin-bottom: 10px;
+}
+
+.register label:after {
+    content: ' *';
+    color: red;
 }
 
 .register .form-control,
@@ -27,24 +36,29 @@
     padding: 9px 15px;
 }
 
-.register {
+/* .register {
     margin-top: 50px;
-}
+} */
 
 #login-message {
     display: none;
-    font-weight: 600;
+    /* font-weight: 600; */
     margin: 24px 0;
 }
 
 .submit-btn {
     background: #3875ba;
-    border-radius: 3px;
-    border: none;
+    border: 1px solid #3875ba;
     color: #fff;
-    font-size: 18px;
-    font-weight: bold;
-    padding: 12px 15px;
+    font-size: 17px;
+    line-height: 1.5;
+    padding: 9px 15px;
+    min-width: 193px;
+}
+
+.submit-btn:hover {
+    background: #fff;
+    color: #3875ba;
 }
 
 .register-page {
@@ -63,10 +77,10 @@
     margin: 50px 0;
 }
 
-.tableau-bord h1,
+/* .tableau-bord h1,
 .page .page-content h1 {
     margin-bottom: 30px;
-}
+} */
 
 .page .main-content {
     min-height: 222px;
@@ -74,4 +88,16 @@
 
 .navbar-default .navbar-nav .current-menu-item a {
     color: #00aeef;
+}
+
+.register .mention {
+    font-size: 14px;
+}
+
+.submit .fa {
+    font-size: 24px;
+    position: relative;
+    top: 3px;
+    margin-left: 20px;
+    visibility: hidden;
 }
