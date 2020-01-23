@@ -1,7 +1,4 @@
 <?php if (is_user_logged_in()): ?>
-    <?php $redirect_page_id = 13; ?>
-    <?php $logout_url = wp_logout_url( apply_filters('translated_post_link', $redirect_page_id) ); ?>
-
     <div class="tableau-bord">
         <div class="container">
             <div class="row">
@@ -9,18 +6,15 @@
                     <h1><?= __('Tableau de bord', 'xbot17'); ?></h1>
                     <div class="row">
                         <div class="col-md-3">
-                            <div class="list-group">
-                                <a class="list-group-item" href="<?= apply_filters('translated_post_link', 58); ?>"><?= __('S\'inscrire avec IronFx', 'xbot17'); ?></a>
-                                <a class="list-group-item" href="<?= $logout_url; ?>"><?= __('Se déconnecter', 'xbot17'); ?></a>
-                            </div>
+                            <?php get_template_part('template-parts/sidebar'); ?>
                         </div>
-                        <div class="col-md-9">
+                        <!-- <div class="col-md-9">
                             <div class="panel">
                                 <div class="panel-body">
 
                                 </div>
                             </div>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>

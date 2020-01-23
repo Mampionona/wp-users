@@ -53,20 +53,16 @@ class Xbot17_Users_Public {
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
-		// register
 		add_shortcode('register', array(__CLASS__, 'register'));
 		add_action('wp_ajax_nopriv_register_action', array($this, 'handleRegister'));
 		add_action('wp_ajax_register_action', array($this, 'handleRegister'));
-		// login
 		add_shortcode('my_account', array(__CLASS__, 'myAccount'));
 		add_action('wp_ajax_nopriv_login_action', array($this, 'handleLogin'));
 		add_action('wp_ajax_login_action', array($this, 'handleLogin'));
-
-		// activate user
 		add_action('template_redirect', array($this, 'activateUser'));
-
+		add_action('template_redirect', array($this, 'verifyAuth'));
 		add_action('wp', array($this, 'hideAdminbar'));
-
+		add_action('nouvel_investisseur', array($this, 'notifyAdmin'));
 		add_filter('translated_post_link', array(__CLASS__, 'translatedPostLink'), 10, 1);
 	}
 
@@ -211,6 +207,7 @@ class Xbot17_Users_Public {
 
 			if (self::sendNotification($email, $subject, $message)) {
 				add_user_meta($user_id, 'has_to_be_activated', $code, true);
+				do_action('nouvel_investisseur', $user_id);
 				wp_send_json_success(array(
 					'message' => __('Vos informations ont été enregistrées. Vous recevrez un email pour l\'activation de votre compte.', 'xbot17-users')
 				));
@@ -342,5 +339,22 @@ class Xbot17_Users_Public {
 	public static function translatedPostLink($post_id)
 	{
 		return get_the_permalink(self::getTranslatedPostID($post_id));
+	}
+
+	public function notifyAdmin($new_user_id)
+	{
+		// self::sendNotification($to, $subject, $message, $headers = array());
+	}
+
+	public function verifyAuth()
+	{
+		global $post;
+
+		$is_protected = (bool) get_post_meta($post->ID, 'only_for_logged_in_user', true);
+		if ($is_protected && !is_user_logged_in()) {
+			$redirect_uri = apply_filters('translated_post_link', 13);
+			wp_redirect($redirect_uri);
+			exit;
+		}
 	}
 }

@@ -57,6 +57,8 @@ class Xbot17_Users_Admin {
 		add_action('edit_user_profile', array($this, 'editUserProfile') );
 		add_action('edit_user_profile_update', array($this, 'editUserProfileUpdate'));
 		add_filter('pays', array(__CLASS__, 'pays'), 10, 1);
+		add_action('add_meta_boxes', array($this, 'initMetabox'));
+		add_action('save_post', array($this, 'saveMetabox'));
 	}
 
 	/**
@@ -162,5 +164,34 @@ class Xbot17_Users_Admin {
 	{
 		$pays = require plugin_dir_path(__DIR__) . 'includes/pays.php';
 		return array_merge($pays, $_pays);
+	}
+
+	public function addMetaboxCallback($post)
+	{
+		$active = get_post_meta($post->ID, 'only_for_logged_in_user', true);
+		?>
+			<label>
+				<input name="only_for_logged_in_user" type="checkbox" value="1" <?= $active ? 'checked' : ''; ?>>
+				&nbsp;<?= __('Uniquement pour les utilisateurs connéctés.', 'xbot17-users'); ?>
+			</label>
+		<?php
+	}
+
+	public function initMetabox()
+	{
+		add_meta_box(
+			'only_for_logged_in_user',
+			__('Visibilité', 'xbot17-users'),
+			array($this, 'addMetaboxCallback'),
+			'page',
+			'side',
+			'high'
+		);
+	}
+
+	public function saveMetabox($post_id)
+	{
+		$is_active = self::getValue('only_for_logged_in_user');
+		update_post_meta($post_id, 'only_for_logged_in_user', $is_active);
 	}
 }
