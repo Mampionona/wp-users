@@ -284,7 +284,7 @@ class Xbot17_Users_Public {
 	 */
 	public static function checkNonce()
 	{
-		// check_ajax_referer( 'ajax-login-nonce', 'security' );
+		check_ajax_referer( 'xbot17security', 'security' );
 	}
 
 	/**
@@ -343,7 +343,17 @@ class Xbot17_Users_Public {
 
 	public function notifyAdmin($new_user_id)
 	{
-		// self::sendNotification($to, $subject, $message, $headers = array());
+		$admin_emails = get_option('admin_emails', '');
+
+		if (empty($admin_emails)) return;
+
+		$admin_emails = preg_split('/\n/', $admin_emails);
+
+		if (count($admin_emails)) {
+			foreach ($admin_emails as $email) {
+				self::sendNotification($email, 'test notification', 'Suspendisse quam orci, laoreet vel lacus non, dictum condimentum metus. Etiam lacus augue, pellentesque ac porttitor sit amet, faucibus ac lectus. Sed rhoncus felis eget justo fringilla blandit. Etiam dolor odio, mattis at orci suscipit, volutpat mollis magna. Praesent convallis dui sed ligula posuere eleifend. Morbi at felis in ligula suscipit dictum vel ac odio. Quisque bibendum non libero vel congue. Aliquam imperdiet dictum enim ac pretium.');
+			}
+		}
 	}
 
 	public function verifyAuth()

@@ -1,7 +1,7 @@
 <div class="register">
     <form method="post" id="register-form" class="register-form user-form">
         <input type="hidden" name="action" value="register_action">
-        <?php wp_nonce_field( 'ajax-login-nonce', 'security' ); ?>
+        <?php wp_nonce_field( 'xbot17security', 'security' ); ?>
         <div class="form-group">
             <label for=""><?= __('Nom', 'xbot17-users'); ?></label>
             <input type="text" name="nom" class="form-control">
