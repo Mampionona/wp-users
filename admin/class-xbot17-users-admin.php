@@ -116,7 +116,7 @@ class Xbot17_Users_Admin {
 
 	public function editUserProfile( $user )
 	{
-		$user_pays = get_the_author_meta( 'user_pays', $user->ID );
+		$user_pays = get_user_meta( $user->ID, 'user_pays', true );
 		?>
 		<table class="form-table" id="custom-user-meta">
 			<tr>
@@ -124,7 +124,7 @@ class Xbot17_Users_Admin {
 					<label for="telephone"><?= __( 'Téléphone', 'xbot17-users' ); ?></label>
 				</th>
 				<td>
-					<input type="text" name="user_telephone" id="telephone" value="<?php echo esc_attr( get_the_author_meta( 'user_telephone', $user->ID ) ); ?>" class="regular-text" />
+					<input type="text" name="user_telephone" id="telephone" value="<?php echo esc_attr( get_user_meta( $user->ID, 'user_telephone', true ) ); ?>" class="regular-text" />
 				</td>
 			</tr>
 			<tr>
@@ -145,7 +145,7 @@ class Xbot17_Users_Admin {
 					<label for="annee-naissance"><?= __( 'Année de naissance', 'xbot17-users' ); ?></label>
 				</th>
 				<td>
-					<input type="text" name="user_annee_naissance" id="annee-naissance" value="<?php echo esc_attr( get_the_author_meta( 'user_annee_naissance', $user->ID ) ); ?>" class="regular-text" />
+					<input type="text" name="user_annee_naissance" id="annee-naissance" value="<?php echo esc_attr( get_user_meta( $user->ID, 'user_annee_naissance', true ) ); ?>" class="regular-text" />
 				</td>
 			</tr>
 		</table>
@@ -211,11 +211,15 @@ class Xbot17_Users_Admin {
 	public function adminMenuInit()
 	{
 		if (isset($_POST['admin_emails'])) {
-			$admin_emails = self::getValue('admin_emails');
-			update_option('admin_emails', $admin_emails);
+			update_option('admin_emails', self::getValue('admin_emails'));
+		}
+
+		if (isset($_POST['email_template'])) {
+			update_option('email_template', self::getValue('email_template'));
 		}
 
 		$admin_emails = get_option('admin_emails', '');
+		$template = stripslashes(get_option('email_template', ''));
 		?>
 			<div class="wrap">
 				<h1><?= __('Paramètres', 'xbot17-users'); ?></h1>
@@ -224,6 +228,10 @@ class Xbot17_Users_Admin {
 						<tr>
 							<th scope="row"><label for="admin-emails">Admin emails</label></th>
 							<td><textarea name="admin_emails" id="admin-emails" class="regular-text" rows="5"><?= $admin_emails; ?></textarea></td>
+						</tr>
+						<tr>
+							<th scope="row"><label for="email-template">Email</label></th>
+							<td><textarea name="email_template" id="email-template" class="regular-text" rows="15"><?= $template; ?></textarea></td>
 						</tr>
 					</table>
 					<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="<?= __('Enregistrer les modifications', 'xbot17-users'); ?>"></p>

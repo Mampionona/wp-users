@@ -41,6 +41,8 @@ class Xbot17_Users_Public {
 	 */
 	private $version;
 
+	private $user;
+
 	/**
 	 * Initialize the class and set its properties.
 	 *
@@ -126,7 +128,6 @@ class Xbot17_Users_Public {
 
 	public static function register($atts)
 	{
-		// $foo = 'hello Andry';
 		return self::loadTemplate('register.php');
 	}
 
@@ -340,15 +341,52 @@ class Xbot17_Users_Public {
 	{
 		$admin_emails = get_option('admin_emails', '');
 
-		if (empty($admin_emails)) return;
+		if (empty($admin_emails)) {
+			return;
+		}
 
+		$user = $this->user($new_user_id);
+
+		if (!$user) {
+			return;
+		}
+
+		$site_name = get_bloginfo('name');
+		$search = array(
+			'##SITE##',
+			'##NOM##',
+			'##PRENOM##',
+			'##EMAIL##',
+			'##TELEPHONE##',
+			'##PAYS##',
+			'##ANNEENAISSANCE##'
+		);
+		$replace = array(
+			$site_name,
+			$user->last_name,
+			$user->first_name,
+			$user->user_email,
+			get_user_meta($new_user_id, 'user_telephone', true),
+			get_user_meta($new_user_id, 'user_pays', true),
+			get_user_meta($new_user_id, 'user_annee_naissance', true)
+		);
+
+		$subject = sprintf(__('[%s] Inscription d\'un nouvel utilisateur', 'xbot17-users'), $site_name);
+		$message = stripslashes(get_option('email_template', ''));
+		$message = str_replace($search, $replace, $message);
+		$message = wpautop($message);
 		$admin_emails = preg_split('/\n/', $admin_emails);
 
-		if (count($admin_emails)) {
-			foreach ($admin_emails as $email) {
-				self::sendNotification($email, 'test notification', 'Suspendisse quam orci, laoreet vel lacus non, dictum condimentum metus. Etiam lacus augue, pellentesque ac porttitor sit amet, faucibus ac lectus. Sed rhoncus felis eget justo fringilla blandit. Etiam dolor odio, mattis at orci suscipit, volutpat mollis magna. Praesent convallis dui sed ligula posuere eleifend. Morbi at felis in ligula suscipit dictum vel ac odio. Quisque bibendum non libero vel congue. Aliquam imperdiet dictum enim ac pretium.');
+		foreach ($admin_emails as $email) {
+			if (!empty($email)) {
+				self::sendNotification($email, $subject, $message);
 			}
 		}
+	}
+
+	private function user($user_id)
+	{
+		return get_userdata($user_id);
 	}
 
 	public function verifyAuth()
