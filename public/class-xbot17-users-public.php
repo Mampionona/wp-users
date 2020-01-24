@@ -61,20 +61,15 @@ class Xbot17_Users_Public {
 		add_action('wp_ajax_login_action', array($this, 'handleLogin'));
 		add_action('template_redirect', array($this, 'activateUser'));
 		add_action('template_redirect', array($this, 'verifyAuth'));
-		add_action('wp', array($this, 'hideAdminbar'));
 		add_action('nouvel_investisseur', array($this, 'notifyAdmin'));
 		add_filter('translated_post_link', array(__CLASS__, 'translatedPostLink'), 10, 1);
+		add_action('wp', array($this, 'hideAdminbar'));
 	}
 
 	public function hideAdminbar()
 	{
 		// esorina ny admin-bar rehefa investisseur
-		$user_id = get_current_user_id();
-
-		if ($user_id === 0) return;
-
-		$userdata = get_userdata($user_id);
-		if (in_array('subscriber', $userdata->roles)) {
+		if (current_user_can('subscriber')) {
 			add_filter('show_admin_bar', '__return_false');
 		}
 	}
