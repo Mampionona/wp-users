@@ -59,6 +59,7 @@ class Xbot17_Users_Admin {
 		add_filter('pays', array(__CLASS__, 'pays'), 10, 1);
 		add_action('add_meta_boxes', array($this, 'initMetabox'));
 		add_action('save_post', array($this, 'saveMetabox'));
+		add_action('admin_menu', array($this, 'addAdminMenu'));
 	}
 
 	/**
@@ -193,5 +194,41 @@ class Xbot17_Users_Admin {
 	{
 		$is_active = self::getValue('only_for_logged_in_user');
 		update_post_meta($post_id, 'only_for_logged_in_user', $is_active);
+	}
+
+	public function addAdminMenu()
+	{
+		add_submenu_page(
+			'users.php',
+			__('Paramètres', 'xbot17-users'),
+			__('Paramètres', 'xbot17-users'),
+			'manage_options',
+			'settings',
+			array($this, 'adminMenuInit')
+		);
+	}
+
+	public function adminMenuInit()
+	{
+		if (isset($_POST['admin_emails'])) {
+			$admin_emails = self::getValue('admin_emails');
+			update_option('admin_emails', $admin_emails);
+		}
+
+		$admin_emails = get_option('admin_emails', '');
+		?>
+			<div class="wrap">
+				<h1><?= __('Paramètres', 'xbot17-users'); ?></h1>
+				<form method="post">
+					<table class="form-table" role="presentation">
+						<tr>
+							<th scope="row"><label for="admin-emails">Admin emails</label></th>
+							<td><textarea name="admin_emails" id="admin-emails" class="regular-text" rows="5"><?= $admin_emails; ?></textarea></td>
+						</tr>
+					</table>
+					<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="<?= __('Enregistrer les modifications', 'xbot17-users'); ?>"></p>
+				</form>
+			</div>
+		<?php
 	}
 }
