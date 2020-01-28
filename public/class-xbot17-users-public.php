@@ -171,55 +171,52 @@ class Xbot17_Users_Public {
 			));
 		}
 
-		$default_newuser = array(
+		$new_user = array(
 			'user_pass' =>  sanitize_text_field($mdp),
 			'user_login' => $email,
 			'user_email' => $email,
 			'first_name' => $prenom,
 			'last_name' => $nom,
-			'role' => 'pending'
+			// 'role' => 'pending',
+			'role' => 'subscriber'
 		);
 
-		$user_id = wp_insert_user($default_newuser);
-		if ( $user_id && !is_wp_error( $user_id ) ) {
+		$user_id = wp_insert_user($new_user);
+		if ($user_id && !is_wp_error($user_id)) {
 			update_user_meta($user_id, 'user_pays', $pays);
 			update_user_meta($user_id, 'user_telephone', $telephone);
 			update_user_meta($user_id, 'user_annee_naissance', $annee_naissance);
 
-			$code = sha1( $user_id . time() );
-			$mon_compte = 13;
-			$link = apply_filters('translated_post_link', $mon_compte);
-			$activation_link = add_query_arg( array(
-				'activate_account' => true,
-				'key' => $code,
-				'user' => $user_id
-			), $link);
-			$subject = __('Activer votre compte Xbot17', 'xbot17-users');
-			$message = sprintf(
-				__('Bonjour %s,<br><br>Pour activer votre compte Xbot17, merci de cliquer sur le lien ci-dessous:<br><br>%s<br><br>Bien cordialement', 'xbot17-users'),
-				$prenom,
-				'<a href="' . $activation_link . '">' . $activation_link . '</a>'
-			);
+			// $code = sha1( $user_id . time() );
+			// $mon_compte = 13;
+			// $link = apply_filters('translated_post_link', $mon_compte);
+			// $activation_link = add_query_arg( array(
+			// 	'activate_account' => true,
+			// 	'key' => $code,
+			// 	'user' => $user_id
+			// ), $link);
+			// $subject = __('Activer votre compte Xbot17', 'xbot17-users');
+			// $message = sprintf(
+			// 	__('Bonjour %s,<br><br>Pour activer votre compte Xbot17, merci de cliquer sur le lien ci-dessous:<br><br>%s<br><br>Bien cordialement', 'xbot17-users'),
+			// 	$prenom,
+			// 	'<a href="' . $activation_link . '">' . $activation_link . '</a>'
+			// );
 
-			if (self::sendNotification($email, $subject, $message)) {
-				add_user_meta($user_id, 'has_to_be_activated', $code, true);
-				do_action('nouvel_investisseur', $user_id);
-				wp_send_json_success(array(
-					'message' => __('Vos informations ont été enregistrées. Vous recevrez un email pour l\'activation de votre compte.', 'xbot17-users')
-				));
-			}
-
-			// Fafana izy raha tsy lasa ny mail
-			wp_delete_user($user_id);
-
-			wp_send_json_error(array(
-				'message' => __('Une erreur s\'est produite lors de la creation de votre compte. Veuillez réessayer.', 'xbot17-users')
+			// envoyer le lien d'activation
+			// self::sendNotification($email, $subject, $message);
+			// add_user_meta($user_id, 'has_to_be_activated', $code, true);
+			do_action('nouvel_investisseur', $user_id);
+			// wp_send_json_success(array(
+			// 	'message' => __('Vos informations ont été enregistrées. Vous recevrez un email pour l\'activation de votre compte.', 'xbot17-users'),
+			// 	'user_id' => $user_id
+			// ));
+			wp_send_json_success(array(
+				'message' => __('Vos informations ont été enregistrées. Vous pouvez maintenant accéder à votre compte.', 'xbot17-users'),
+				// 'user_id' => $user_id
 			));
 		}
 
-		wp_send_json_error(array(
-			'message' => $user_id->get_error_message()
-		));
+		wp_send_json_error(array('message' => $user_id->get_error_message()));
 	}
 
 	public static function sendNotification($to, $subject, $message, $headers = array())

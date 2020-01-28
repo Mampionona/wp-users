@@ -42,7 +42,8 @@
 									break;
 
 								case 'register_action':
-									displaySuccessMessage(response.data.message);
+									// displaySuccessMessage(response.data.message);
+									$("#inscription-ok").modal("show");
 									form.trigger('reset');
 							}
 						}

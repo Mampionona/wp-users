@@ -33,7 +33,7 @@
             </div>
             <div class="form-group">
                 <label for=""><?= __('Mot de passe', 'xbot17-users'); ?></label>
-                <input type="password" name="mdp" class="form-control">
+                <input type="password" name="mdp" class="form-control" autocomplete="new-password">
             </div>
             <div id="login-message"></div>
             <div class="submit">
@@ -41,5 +41,7 @@
                 <i class="fa fa-spinner fa-spin"></i>
             </div>
         </form>
+
+        <p class="mdp-oublie"><a href="<?= apply_filters('translated_post_link', 95); ?>"><?= __('Mot de passe oublié ?', 'xbot17-users'); ?></a></p>
     </div>
 <?php endif; ?>

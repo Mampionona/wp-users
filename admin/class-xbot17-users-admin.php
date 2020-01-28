@@ -20,8 +20,8 @@
  * @subpackage Xbot17_Users/admin
  * @author     Mampionona <mmampionona@gmail.com>
  */
-class Xbot17_Users_Admin {
-
+class Xbot17_Users_Admin
+{
 	/**
 	 * The ID of this plugin.
 	 *
@@ -47,7 +47,8 @@ class Xbot17_Users_Admin {
 	 * @param      string    $plugin_name       The name of this plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct( $plugin_name, $version )
+	{
 
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
@@ -60,6 +61,63 @@ class Xbot17_Users_Admin {
 		add_action('add_meta_boxes', array($this, 'initMetabox'));
 		add_action('save_post', array($this, 'saveMetabox'));
 		add_action('admin_menu', array($this, 'addAdminMenu'));
+		add_filter('manage_users_columns', array(__CLASS__, 'ajouterDateInscription'));
+		add_filter('manage_users_custom_column', array($this, 'afficherLaDateInscription'), 1, 3);
+		add_filter('localize_datetime', array($this, 'localizeDatetime'), 10, 1);
+		add_action('pre_user_query', array($this, 'usersAdminColumnsOrderBy'));
+		add_filter('manage_users_sortable_columns', array($this, 'usersSortableColumns'));
+	}
+
+	public function usersSortableColumns( $columns )
+	{
+		$sortable_columns = array(
+			// meta column id => sortby value used in query
+			'inscrit_le' => 'registered',
+			'role' => 'role'
+		);
+
+		return wp_parse_args($sortable_columns, $columns);
+	}
+
+	public function usersAdminColumnsOrderBy($query)
+	{
+		global $pagenow;
+
+		if (!is_admin() || 'users.php' !== $pagenow || isset($_GET['orderby'])) {
+			return;
+		}
+		$query->query_orderby = 'ORDER BY user_registered DESC';
+	}
+
+	public static function ajouterDateInscription($columns)
+	{
+		// Enlever la colonne 2FA status
+		unset($columns['wfls_2fa_status']);
+		$new_columns = array();
+		// Ajouter la colonne téléphone à droite du nom
+		foreach ($columns as $key => $title) {
+			if ($key === 'email') {
+				$new_columns['telephone'] = __('Téléphone', 'xbot17-users');
+			}
+			$new_columns[$key] = $title;
+		}
+		$new_columns['inscrit_le'] = __('Inscrit le', 'xbot17-users');
+		return $new_columns;
+	}
+
+	public function afficherLaDateInscription($val, $column, $user_id)
+	{
+		$user = get_userdata($user_id);
+
+		switch ($column) {
+			case 'inscrit_le':
+				return apply_filters('localize_datetime', $user->user_registered);
+
+			case 'telephone':
+				$telephone = get_user_meta($user_id, 'user_telephone', true);
+				if ($telephone) return $telephone;
+				return '-';
+		}
 	}
 
 	/**
@@ -67,7 +125,8 @@ class Xbot17_Users_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+	public function enqueue_styles()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -90,7 +149,8 @@ class Xbot17_Users_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
+	public function enqueue_scripts()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -118,6 +178,7 @@ class Xbot17_Users_Admin {
 	{
 		$user_pays = get_user_meta( $user->ID, 'user_pays', true );
 		?>
+
 		<table class="form-table" id="custom-user-meta">
 			<tr>
 				<th>
@@ -149,7 +210,23 @@ class Xbot17_Users_Admin {
 				</td>
 			</tr>
 		</table>
+		<table class="form-table" id="cree-le">
+			<tr>
+				<th>
+					<label><?= __( 'Inscrit le', 'xbot17-users' ); ?></label>
+				</th>
+				<td>
+					<p><?= apply_filters('localize_datetime', $user->user_registered); ?></p>
+				</td>
+			</tr>
+		</table>
 		<?php
+	}
+
+	public function localizeDatetime($datetime)
+	{
+		$date = new Datetime($datetime);
+		return date_i18n(get_option('date_format'), $date->getTimestamp());
 	}
 
 	public function editUserProfileUpdate( $user_id )
