@@ -50,8 +50,8 @@ class Xbot17_Users_Public {
 	 * @param      string    $plugin_name       The name of the plugin.
 	 * @param      string    $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
-
+	public function __construct( $plugin_name, $version )
+	{
 		$this->plugin_name = $plugin_name;
 		$this->version = $version;
 
@@ -64,6 +64,7 @@ class Xbot17_Users_Public {
 		add_action('template_redirect', array($this, 'activateUser'));
 		add_action('template_redirect', array($this, 'verifyAuth'));
 		add_action('nouvel_investisseur', array($this, 'notifyAdmin'));
+		add_action('nouvel_investisseur', array($this, 'notifyClient'));
 		add_filter('translated_post_link', array(__CLASS__, 'translatedPostLink'), 10, 1);
 		add_action('wp', array($this, 'hideAdminbar'));
 	}
@@ -157,15 +158,15 @@ class Xbot17_Users_Public {
 			wp_send_json_error(array(
 				'message' => __('Tous les champs sont obligatoires.', 'xbot17-users')
 			));
-		}
-
-		if (mb_strlen($mdp) < 8) {
+		} elseif ($annee_naissance < 1900 || $annee_naissance > 2100) {
+			wp_send_json_error(array(
+				'message' => __('Année de naissance invalide.', 'xbot17-users')
+			));
+		} elseif (mb_strlen($mdp) < 8) {
 			wp_send_json_error(array(
 				'message' => __('Mot de passe trop court.', 'xbot17-users')
 			));
-		}
-
-		if ($mdp !== $confirmation_mdp) {
+		} elseif ($mdp !== $confirmation_mdp) {
 			wp_send_json_error(array(
 				'message' => __('Les mots de passe ne correspondent pas.', 'xbot17-users')
 			));
@@ -379,6 +380,15 @@ class Xbot17_Users_Public {
 				self::sendNotification($email, $subject, $message);
 			}
 		}
+	}
+
+	public function notifyClient($user_id)
+	{
+		$user = $this->user($user_id);
+		$sujet = sprintf(__('[%s] Inscription', 'xbot17-users'), get_bloginfo('name'));
+		$message = sprintf(__('Bonjour %s, <br><br>Vos informations ont été enregistrées. <br><br>Vous pouvez désormais accéder à votre compte sur le site Xbot17.', 'xbot17-users'), $user->first_name);
+
+		self::sendNotification($user->user_email, $sujet, $message);
 	}
 
 	private function user($user_id)

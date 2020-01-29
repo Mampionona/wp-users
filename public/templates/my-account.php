@@ -3,7 +3,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12">
-                    <h1><?= __('Tableau de bord', 'xbot17'); ?></h1>
+                    <h1><?= __('Tableau de bord', 'xbot17-users'); ?></h1>
                     <div class="row">
                         <div class="col-md-3">
                             <?php get_template_part('template-parts/sidebar'); ?>
@@ -42,6 +42,6 @@
             </div>
         </form>
 
-        <p class="mdp-oublie"><a href="<?= apply_filters('translated_post_link', 95); ?>"><?= __('Mot de passe oublié ?', 'xbot17-users'); ?></a></p>
+        <p class="mdp-oublie"><a href="<?= apply_filters('translated_post_link', 106); ?>"><?= __('Mot de passe oublié ?', 'xbot17-users'); ?></a></p>
     </div>
 <?php endif; ?>

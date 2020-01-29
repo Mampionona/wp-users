@@ -43,21 +43,6 @@
     margin: 24px 0;
 }
 
-.submit-btn {
-    background: #3875ba;
-    border: 1px solid #3875ba;
-    color: #fff;
-    font-size: 17px;
-    line-height: 1.5;
-    padding: 9px 15px;
-    min-width: 193px;
-}
-
-.submit-btn:hover {
-    background: #fff;
-    color: #3875ba;
-}
-
 .register-page {
     padding-top: 70px;
 }
@@ -92,6 +77,8 @@
 
 .mdp-oublie {
     margin-top: 30px;
+    font-size: 14px;
+    font-weight: 400;
 }
 
 #password-lost-form-wrap {
@@ -100,12 +87,4 @@
     margin-right: auto;
     padding-left: 15px;
     padding-right: 15px;
-}
-
-#somfrp_user_info {
-    border: 1px solid #d0d0d0;
-    border-radius: 0;
-    height: 40px;
-    padding: 9px 15px;
-    width: 100%;
 }

@@ -28,7 +28,7 @@
         </div>
         <div class="form-group">
             <label for=""><?= __('Année de naissance', 'xbot17-users'); ?></label>
-            <input type="number" name="annee_naissance" class="form-control" min="1900">
+            <input type="number" name="annee_naissance" class="form-control" min="1900" max="2100">
         </div>
         <div class="form-group">
             <label for=""><?= __('Mot de passe', 'xbot17-users'); ?></label>
