@@ -61,7 +61,7 @@ class Xbot17_Users_Admin
 		add_action('add_meta_boxes', array($this, 'initMetabox'));
 		add_action('save_post', array($this, 'saveMetabox'));
 		add_action('admin_menu', array($this, 'addAdminMenu'));
-		add_filter('manage_users_columns', array(__CLASS__, 'ajouterDateInscription'));
+		add_filter('manage_users_columns', array(__CLASS__, 'usersAjouterColonnes'));
 		add_filter('manage_users_custom_column', array($this, 'afficherLaDateInscription'), 1, 3);
 		add_filter('localize_datetime', array($this, 'localizeDatetime'), 10, 1);
 		add_action('pre_user_query', array($this, 'usersAdminColumnsOrderBy'));
@@ -73,7 +73,8 @@ class Xbot17_Users_Admin
 		$sortable_columns = array(
 			// meta column id => sortby value used in query
 			'inscrit_le' => 'registered',
-			'role' => 'role'
+			'role' => 'role',
+			// 'connecte_xbot17' => 'connecte_xbot17'
 		);
 
 		return wp_parse_args($sortable_columns, $columns);
@@ -89,7 +90,7 @@ class Xbot17_Users_Admin
 		$query->query_orderby = 'ORDER BY user_registered DESC';
 	}
 
-	public static function ajouterDateInscription($columns)
+	public static function usersAjouterColonnes($columns)
 	{
 		// Enlever la colonne 2FA status
 		unset($columns['wfls_2fa_status']);
@@ -102,6 +103,7 @@ class Xbot17_Users_Admin
 			$new_columns[$key] = $title;
 		}
 		$new_columns['inscrit_le'] = __('Inscrit le', 'xbot17-users');
+		$new_columns['connecte_xbot17'] = __('Compte connecté au Xbot17', 'xbot17-users');
 		return $new_columns;
 	}
 
@@ -117,6 +119,10 @@ class Xbot17_Users_Admin
 				$telephone = get_user_meta($user_id, 'user_telephone', true);
 				if ($telephone) return $telephone;
 				return '-';
+
+			case 'connecte_xbot17':
+				if (get_user_meta($user_id, 'connecte_xbot17', true)) return __('Oui', 'xbot17-users');
+				return __('Non', 'xbot17-users');
 		}
 	}
 
@@ -220,6 +226,27 @@ class Xbot17_Users_Admin
 				</td>
 			</tr>
 		</table>
+		<table class="form-table">
+			<tr>
+				<th>
+					<label><?= __('Le compte est-il connecté au Xbot17 ?', 'xbot17-users'); ?></label>
+				</th>
+				<td>
+					<?php $connecte = (bool) get_user_meta($user->ID, 'connecte_xbot17', true); ?>
+					<fieldset>
+						<label>
+							<input name="connecte_xbot17" type="radio" value="1" <?= $connecte ? 'checked' : ''; ?>>
+							<span><?= __('Oui', 'xbot17-users'); ?></span>
+						</label>
+						<br>
+						<label>
+							<input name="connecte_xbot17" type="radio" value="0" <?= !$connecte ? 'checked' : ''; ?>>
+							<span><?= __('Non', 'xbot17-users'); ?></span>
+						</label>
+					</fieldset>
+				</td>
+			</tr>
+		</table>
 		<?php
 	}
 
@@ -236,6 +263,9 @@ class Xbot17_Users_Admin
 		foreach ($fields as $field) {
 			update_user_meta($user_id, $field, sanitize_text_field(self::getValue($field)));
 		}
+
+		$connecte_xbot17 = (bool) self::getValue('connecte_xbot17');
+		update_user_meta($user_id, 'connecte_xbot17', $connecte_xbot17);
 	}
 
 	public static function pays(array $_pays = array())
@@ -269,6 +299,11 @@ class Xbot17_Users_Admin
 
 	public function saveMetabox($post_id)
 	{
+		global $pagenow;
+
+		if ($pagenow !== 'post.php') {
+			return;
+		}
 		$is_active = self::getValue('only_for_logged_in_user');
 		update_post_meta($post_id, 'only_for_logged_in_user', $is_active);
 	}
@@ -277,22 +312,20 @@ class Xbot17_Users_Admin
 	{
 		add_submenu_page(
 			'users.php',
-			__('Paramètres', 'xbot17-users'),
-			__('Paramètres', 'xbot17-users'),
+			__('Devenir investisseur', 'xbot17-users'),
+			__('Devenir investisseur', 'xbot17-users'),
 			'manage_options',
-			'settings',
+			'devenir-investisseur',
 			array($this, 'adminMenuInit')
 		);
 	}
 
 	public function adminMenuInit()
 	{
-		if (isset($_POST['admin_emails'])) {
+		if (isset($_POST['devenir_investisseur'])) {
 			update_option('admin_emails', self::getValue('admin_emails'));
-		}
-
-		if (isset($_POST['email_template'])) {
 			update_option('email_template', self::getValue('email_template'));
+			update_option('trade_en_cours', self::getValue('trade_en_cours'));
 		}
 
 		$admin_emails = get_option('admin_emails', '');
@@ -301,14 +334,35 @@ class Xbot17_Users_Admin
 			<div class="wrap">
 				<h1><?= __('Paramètres', 'xbot17-users'); ?></h1>
 				<form method="post">
+					<input type="hidden" name="devenir_investisseur" value="1">
 					<table class="form-table" role="presentation">
 						<tr>
-							<th scope="row"><label for="admin-emails">Admin emails</label></th>
-							<td><textarea name="admin_emails" id="admin-emails" class="regular-text" rows="5"><?= $admin_emails; ?></textarea></td>
+							<th scope="row"><label for="admin-emails">E-mail de notification</label></th>
+							<td>
+								<textarea name="admin_emails" id="admin-emails" class="regular-text" rows="5"><?= $admin_emails; ?></textarea><br>
+								<span>Une valeur par ligne</span>
+							</td>
 						</tr>
 						<tr>
-							<th scope="row"><label for="email-template">Email</label></th>
-							<td><textarea name="email_template" id="email-template" class="regular-text" rows="15"><?= $template; ?></textarea></td>
+							<th scope="row"><label for="email-template">Modèle</label></th>
+							<td><textarea name="email_template" id="email-template" class="regular-text" rows="12"><?= $template; ?></textarea></td>
+						</tr>
+						<tr>
+							<th scope="row">Y a-t-il des trade en cours sur les comptes connectés au Xbot17?</th>
+							<td>
+								<?php $trade_en_cours = (bool) get_option('trade_en_cours', 0); ?>
+								<fieldset>
+									<label>
+										<input name="trade_en_cours" type="radio" value="1" <?= $trade_en_cours ? 'checked' : ''; ?>>
+										<span><?= __('Oui', 'xbot17-users'); ?></span>
+									</label>
+									<br>
+									<label>
+										<input name="trade_en_cours" type="radio" value="0" <?= !$trade_en_cours ? 'checked' : ''; ?>>
+										<span><?= __('Non', 'xbot17-users'); ?></span>
+									</label>
+								</fieldset>
+							</td>
 						</tr>
 					</table>
 					<p class="submit"><input type="submit" name="submit" id="submit" class="button button-primary" value="<?= __('Enregistrer les modifications', 'xbot17-users'); ?>"></p>

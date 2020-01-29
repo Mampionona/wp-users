@@ -8,13 +8,21 @@
                         <div class="col-md-3">
                             <?php get_template_part('template-parts/sidebar'); ?>
                         </div>
-                        <!-- <div class="col-md-9">
-                            <div class="panel">
-                                <div class="panel-body">
-
-                                </div>
-                            </div>
-                        </div> -->
+                        <div class="col-md-9">
+                            <?php
+                                $user_id = get_current_user_id();
+                                $connecte_xbot17 = (bool) get_user_meta($user_id, 'connecte_xbot17', true);
+                                $trade_en_cours = (bool) get_option('trade_en_cours', 0);;
+                                $oui = __('Oui', 'xbot17-users');
+                                $non = __('Non', 'xbot17-users');
+                            ?>
+                            <p>
+                                <strong><?= __('Votre compte est-il connecté au Xbot17?', 'xbot17-users'); ?> </strong><br><?= $connecte_xbot17 ? $oui : $non; ?>
+                            </p>
+                            <p>
+                                <strong><?= __('Y a-t-il des trades en cours sur les comptes connectés au Xbot17?', 'xbot17-users'); ?></strong><br><?= $trade_en_cours ? $oui : $non; ?>
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

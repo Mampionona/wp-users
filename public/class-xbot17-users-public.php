@@ -121,8 +121,9 @@ class Xbot17_Users_Public {
 		wp_enqueue_script($this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/xbot17-users-public.js', array( 'jquery' ), $this->version, false );
 
 		$mon_compte = 13;
+
 		wp_localize_script( $this->plugin_name, 'xbot17_users', array(
-			'ajaxurl' => admin_url( 'admin-ajax.php' ),
+			'ajaxurl' => add_query_arg('lang', ICL_LANGUAGE_CODE, admin_url('admin-ajax.php')),
 			'redirect_uri' => apply_filters('translated_post_link', $mon_compte)
 		));
 	}
