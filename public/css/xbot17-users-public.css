@@ -25,7 +25,7 @@
     margin-bottom: 10px;
 }
 
-.register label:after {
+.register label:not(.optional-label):after {
     content: ' *';
     color: red;
 }

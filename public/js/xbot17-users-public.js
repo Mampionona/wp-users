@@ -2,6 +2,9 @@
 	'use strict';
 
 	$(function () {
+		setTimeout(function () {
+			$("input[name=mdp_actuel]").val("********");
+		}, 2000);
 		var result = $('#login-message');
 
 		function displayErrorMessage(message) {
@@ -45,6 +48,10 @@
 									// displaySuccessMessage(response.data.message);
 									$("#inscription-ok").modal("show");
 									form.trigger('reset');
+									break;
+
+								case 'edit_profil_action':
+									$("#inscription-ok").modal("show");
 							}
 						}
 					});

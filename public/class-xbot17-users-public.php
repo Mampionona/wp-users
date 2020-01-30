@@ -21,7 +21,10 @@
  * @author     Mampionona <mmampionona@gmail.com>
  */
 
-class Xbot17_Users_Public {
+class Xbot17_Users_Public
+{
+	const ANNEE_MIN = 1900;
+	const ANNEE_MAX = 2100;
 
 	/**
 	 * The ID of this plugin.
@@ -56,17 +59,89 @@ class Xbot17_Users_Public {
 		$this->version = $version;
 
 		add_shortcode('register', array(__CLASS__, 'register'));
-		add_action('wp_ajax_nopriv_register_action', array($this, 'handleRegister'));
-		add_action('wp_ajax_register_action', array($this, 'handleRegister'));
 		add_shortcode('my_account', array(__CLASS__, 'myAccount'));
-		add_action('wp_ajax_nopriv_login_action', array($this, 'handleLogin'));
-		add_action('wp_ajax_login_action', array($this, 'handleLogin'));
+		add_shortcode('profile', array($this, 'showProfile'));
+
 		add_action('template_redirect', array($this, 'activateUser'));
 		add_action('template_redirect', array($this, 'verifyAuth'));
 		add_action('nouvel_investisseur', array($this, 'notifyAdmin'));
 		add_action('nouvel_investisseur', array($this, 'notifyClient'));
-		add_filter('translated_post_link', array(__CLASS__, 'translatedPostLink'), 10, 1);
 		add_action('wp', array($this, 'hideAdminbar'));
+
+		add_action('wp_ajax_nopriv_register_action', array($this, 'handleRegister'));
+		add_action('wp_ajax_nopriv_login_action', array($this, 'handleLogin'));
+		add_action('wp_ajax_edit_profil_action', array($this, 'updateProfile'));
+
+		add_filter('translated_post_link', array(__CLASS__, 'translatedPostLink'), 10, 1);
+	}
+
+	public function updateProfile()
+	{
+		$user_id = get_current_user_id();
+		$prenom = self::getValue('prenom');
+		$nom = self::getValue('nom');
+		$telephone = self::getValue('telephone');
+		$pays = self::getValue('pays');
+		$annee = self::getValue('annee_naissance');
+		$mdp = self::getValue('mdp');
+		$confirmation_mdp = self::getValue('confirmation_mdp');
+		$mdp_actuel = self::getValue('mdp_actuel');
+
+		// Valider les données
+		if (
+			empty($nom)
+			|| empty($prenom)
+			|| empty($telephone)
+			|| empty($pays)
+			|| empty($annee)
+		) wp_send_json_error(array(
+			'message' => __('Veuillez compléter les champs obligatoires.', 'xbot17-users')
+		));
+		elseif (!empty($mdp) && mb_strlen($mdp) < 8) wp_send_json_error(array(
+			'message' => __('Mot de passe trop court.', 'xbot17-users')
+		));
+		elseif (!empty($mdp) && $mdp !== $confirmation_mdp) wp_send_json_error(array(
+			'message' => __('Les mots de passe ne correspondent pas.', 'xbot17-users')
+		));
+		elseif ($annee < self::ANNEE_MIN || $annee > self::ANNEE_MAX) wp_send_json_error(array(
+			'message' => __('Année de naissance invalide.', 'xbot17-users')
+		));
+
+		$userdata = array(
+			'ID' => $user_id,
+			'first_name' => sanitize_text_field($prenom),
+			'last_name' => sanitize_text_field($nom)
+		);
+
+		$user_id = wp_update_user($userdata);
+
+		update_user_meta($user_id, 'user_telephone', sanitize_text_field($telephone));
+		update_user_meta($user_id, 'user_pays', sanitize_text_field($pays));
+		update_user_meta($user_id, 'user_annee_naissance', sanitize_text_field($annee));
+
+		if (is_wp_error($user_id)) {
+			wp_send_json_error(array('message' => $user_id->get_error_message()));
+		}
+
+		if (!empty($mdp)) {
+			// verifier le mot de passe actuel
+			if (!wp_check_password($mdp_actuel, $this->user($user_id)->data->user_pass, $user_id)) {
+				wp_send_json_error(array(
+					'message' => __('Votre mot de passe est incorrect.', 'xbot17-users')
+				));
+			}
+			// mettre à jour le mot de passe
+			wp_set_password($mdp, $user_id);
+			// Sets the authentication cookies based on user ID.
+			wp_set_auth_cookie($user_id, 1, is_ssl());
+		}
+
+		wp_send_json_success(array('message' => 'updated'));
+	}
+
+	public function showProfile()
+	{
+		return self::loadTemplate('profile.php');
 	}
 
 	public function hideAdminbar()
@@ -159,7 +234,7 @@ class Xbot17_Users_Public {
 			wp_send_json_error(array(
 				'message' => __('Tous les champs sont obligatoires.', 'xbot17-users')
 			));
-		} elseif ($annee_naissance < 1900 || $annee_naissance > 2100) {
+		} elseif ($annee_naissance < self::ANNEE_MIN || $annee_naissance > self::ANNEE_MAX) {
 			wp_send_json_error(array(
 				'message' => __('Année de naissance invalide.', 'xbot17-users')
 			));
